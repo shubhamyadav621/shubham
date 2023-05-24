@@ -1,0 +1,333 @@
+import java.util.*;
+
+ class FlightBookingSystem {
+    private static Map<String, String> users = new HashMap<>();
+    private static List<Flight> flights = new ArrayList<>();
+
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
+
+        System.out.println("Welcome to the Airline Booking System!");
+
+        while (true) {
+            System.out.println("Please choose an option:");
+            System.out.println("1. Sign In");
+            System.out.println("2. Register");
+            System.out.println("3. Exit");
+
+            int option = input.nextInt();
+            input.nextLine(); // Clear newline character from buffer
+
+            switch (option) {
+                case 1:
+                    signIn(input);
+                    break;
+                case 2:
+                    registerUser(input);
+                    break;
+                case 3:
+                    System.out.println("Thank you for using the Airline Registration System. Goodbye!");
+                    return;
+                default:
+                    System.out.println("Invalid option. Please try again.");
+            }
+        }
+    }
+
+    private static void signIn(Scanner input) {
+        System.out.println("Please enter your username:");
+        String username = input.nextLine();
+        System.out.println("Please enter your password:");
+        String password = input.nextLine();
+
+        if (users.containsKey(username) && users.get(username).equals(password)) {
+            System.out.println("Sign in successful!");
+
+            Customer customer = getCustomerDetails(input);
+
+            System.out.println("Please choose a flight type:");
+            System.out.println("1. National Flight");
+            System.out.println("2. International Flight");
+            int flightType = input.nextInt();
+
+            Flight selectedFlight;
+            if (flightType == 1) {
+                System.out.println("Please choose a national flight:");
+                selectedFlight = chooseFlight(getNationalFlights(), input);
+            } else {
+                System.out.println("Please choose an international flight:");
+                selectedFlight = chooseFlight(getInternationalFlights(), input);
+            }
+            System.out.println("Thank you for booking with us. Your ticket has been confirmed.");
+
+            displayFlightAvailability(input);
+        } else {
+            System.out.println("Invalid username or password. Sign in failed.");
+        }
+    }
+
+    private static Customer getCustomerDetails(Scanner input) {
+        System.out.println("Please enter your name:");
+        String name = input.nextLine();
+        System.out.println("Please enter your email:");
+        String email = input.nextLine();
+        System.out.println("Please enter your phone number:");
+        String phone = input.nextLine();
+
+        return new Customer(name, email, phone);
+    }
+
+    private static void registerUser(Scanner input) {
+        System.out.println("Please enter a username:");
+        String username = input.nextLine();
+
+        if (users.containsKey(username)) {
+            System.out.println("Username already exists. Registration failed.");
+            return;
+        }
+
+        System.out.println("Please enter a password:");
+        String password = input.nextLine();
+
+        users.put(username, password);
+        System.out.println("Registration successful! You can now sign in.");
+    }
+
+    private static Flight chooseFlight(Flight[] flights, Scanner input) {
+        for (int i = 0; i < flights.length; i++) {
+            System.out.println((i + 1) + ". " + flights[i]);
+        }
+        int choice = input.nextInt();
+        return flights[choice - 1];
+    }
+
+    private static Flight[] getNationalFlights() {
+        return new Flight[]{
+                new Flight("AA123", "Delhi", "Bangalore", "2023-05-20", "10:00"),
+                new Flight("BB456", "Chandigarh", "Goa", "2023-05-21", "14:00"),
+                new Flight("CC789", "Mumbai", "Chennai", "2023-05-22", "16:00")
+        };
+    }
+
+    private static Flight[] getInternationalFlights() {
+        return new Flight[]{
+                new Flight("DD987", "Delhi", "New York", "2023-05-20", "12:00"),
+                new Flight("EE654", "Turkey", "Montreal", "2023-05-21", "15:00"),
+                new Flight("FF321", "London", "Sydney", "2023-05-22", "18:00")
+        };
+    }
+
+    private static void displayFlightAvailability(Scanner input) {
+
+        String date = input.nextLine();
+
+        for (Flight flight : flights) {
+            if (flight.getDate().equals(date)) {
+                System.out.println(flight);
+            }
+        }
+    }
+    private static void bookTicket(Customer customer, Flight flight, double price, Scanner input) {
+        System.out.println("Please choose a payment option:");
+        System.out.println("1. Credit Card");
+        System.out.println("2. Debit Card");
+        int paymentOption = input.nextInt();
+        input.nextLine(); // Clear newline character from buffer
+
+        Payment payment;
+        switch (paymentOption) {
+            case 1:
+                payment = enterCreditCardDetails(input);
+                break;
+            case 2:
+                payment = enterDebitCardDetails(input);
+                break;
+            default:
+                System.out.println("Invalid payment option. Booking failed.");
+                return;
+        }
+
+        Ticket ticket = new Ticket(customer, flight, price, payment);
+        System.out.println("Booking successful! Your ticket details:");
+        System.out.println(ticket);
+    }
+
+    private static Payment enterCreditCardDetails(Scanner input) {
+        System.out.println("Enter Credit Card details:");
+        System.out.println("Card number:");
+        String cardNumber = input.nextLine();
+        System.out.println("Expiration date (MM/YY):");
+        String expirationDate = input.nextLine();
+        System.out.println("CVV:");
+        int cvv = input.nextInt();
+        input.nextLine(); // Clear newline character from buffer
+
+        return new CreditCardPayment(cardNumber, expirationDate, cvv);
+    }
+
+    private static Payment enterDebitCardDetails(Scanner input) {
+        System.out.println("Enter Debit Card details:");
+        System.out.println("Card number:");
+        String cardNumber = input.nextLine();
+        System.out.println("Expiration date (MM/YY):");
+        String expirationDate = input.nextLine();
+        System.out.println("CVV:");
+        int cvv = input.nextInt();
+        input.nextLine(); // Clear newline character from buffer
+
+        return new DebitCardPayment(cardNumber, expirationDate, cvv);
+    }
+}
+
+class Customer {
+    private String name;
+    private String email;
+    private String phone;
+
+    public Customer(String name, String email, String phone) {
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public String toString() {
+        return name + " (" + email + ", " + phone + ")";
+    }
+}
+
+class Flight {
+    private String flightNumber;
+    private String origin;
+    private String destination;
+    private String date;
+    private String time;
+
+    public Flight(String flightNumber, String origin, String destination, String date, String time) {
+        this.flightNumber = flightNumber;
+        this.origin = origin;
+        this.destination = destination;
+        this.date = date;
+        this.time = time;
+    }
+
+    public String getFlightNumber() {
+        return flightNumber;
+    }
+
+    public String getOrigin() {
+        return origin;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public String getTime() {
+        return time;
+    }
+
+    public String toString() {
+        return flightNumber + " - " + origin + " to " + destination + " on " + date + " at " + time;
+    }
+}
+
+class Ticket {
+    private Customer customer;
+    private Flight flight;
+    private double price;
+    private Payment payment;
+
+    public Ticket(Customer customer, Flight flight, double price, Payment payment) {
+        this.customer = customer;
+        this.flight = flight;
+        this.price = price;
+        this.payment = payment;
+    }
+
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public Flight getFlight() {
+        return flight;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public Payment getPayment() {
+        return payment;
+    }
+
+    public String toString() {
+        return "Customer: " + customer + "\nFlight: " + flight + "\nPrice: $" + price + "\nPayment: " + payment;
+    }
+}
+
+abstract class Payment {
+    private String cardNumber;
+    private String expirationDate;
+    private int cvv;
+
+    public Payment(String cardNumber, String expirationDate, int cvv) {
+        this.cardNumber = cardNumber;
+        this.expirationDate = expirationDate;
+        this.cvv = cvv;
+    }
+
+    public String getCardNumber() {
+        return cardNumber;
+    }
+
+    public String getExpirationDate() {
+        return expirationDate;
+    }
+
+    public int getCvv() {
+        return cvv;
+    }
+
+    public abstract String getPaymentType();
+
+    public String toString() {
+        return "Payment Type: " + getPaymentType() + "\nCard Number: " + cardNumber + "\nExpiration Date: " +
+                expirationDate + "\nCVV: " + cvv;
+    }
+}
+
+class CreditCardPayment extends Payment {
+    public CreditCardPayment(String cardNumber, String expirationDate, int cvv) {
+        super(cardNumber, expirationDate, cvv);
+    }
+
+    public String getPaymentType() {
+        return "Credit Card";
+    }
+}
+
+class DebitCardPayment extends Payment {
+    public DebitCardPayment(String cardNumber, String expirationDate, int cvv) {
+        super(cardNumber, expirationDate, cvv);
+    }
+
+    public String getPaymentType() {
+        return "DebitCard";
+    }
+}
